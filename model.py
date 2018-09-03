@@ -94,9 +94,10 @@ class BatchRNN(nn.Module):
     def forward(self, x, output_lengths):
         if self.batch_norm is not None:
             x = self.batch_norm(x)
+        max_seqlength = x.size(0)
         x = nn.utils.rnn.pack_padded_sequence(x, output_lengths)
         x, h = self.rnn(x)
-        x, _ = nn.utils.rnn.pad_packed_sequence(x)
+        x, _ = nn.utils.rnn.pad_packed_sequence(x, total_length=max_seqlength)
         if self.bidirectional:
             x = x.view(x.size(0), x.size(1), 2, -1).sum(2).view(x.size(0), x.size(1), -1)  # (TxNxH*2) -> (TxNxH) by sum
         return x
